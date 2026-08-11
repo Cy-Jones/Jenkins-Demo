@@ -1,26 +1,33 @@
 pipeline {
-    agent {
-        docker {
-            // This pulls a container pre-loaded with Java 21 and Maven
-            image 'maven:3.9.6-eclipse-temurin-21'
-            // We mount the local Maven repository to cache dependencies between builds
-            args '-v $HOME/.m2:/root/.m2'
-        }
-    }
+    agent any // Run on the Mac host first to establish the environment
     
+    environment {
+        // Forces Jenkins to look in Homebrew and Docker installation paths on macOS
+        PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}" 
+    }
+
     stages {
-        stage('Initialize') {
-            steps {
-                echo "Running inside Docker container: maven:3.9.6-eclipse-temurin-21"
-                sh 'java -version'
-                sh 'mvn -version'
+        stage('Build with Maven Container') {
+            agent {
+                docker {
+                    image 'maven:3.9.6-eclipse-temurin-21'
+                    args '-v $HOME/.m2:/root/.m2'
+                }
             }
-        }
-        stage('Build Environment Test') {
-            steps {
-                // Tying this back to your Practical 2 Maven project execution
-                echo "Compiling and packaging..."
-                sh 'mvn clean install'
+            stages {
+                stage('Initialize') {
+                    steps {
+                        echo "Running inside Docker container: maven:3.9.6-eclipse-temurin-21"
+                        sh 'java -version'
+                        sh 'mvn -version'
+                    }
+                }
+                stage('Build Environment Test') {
+                    steps {
+                        echo "Compiling and packaging..."
+                        sh 'mvn clean install'
+                    }
+                }
             }
         }
     }
