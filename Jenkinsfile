@@ -1,35 +1,25 @@
 pipeline {
-    agent {
-        docker {
-            image 'maven:3.9.6-eclipse-temurin-21'
-            args '-v $HOME/.m2:/root/.m2'
-        }
-    }
-    
-    environment {
-        // This forces the Jenkins process wrapper to append the Docker path locally
-        PATH = "/usr/local/bin:${env.PATH}"
-    }
+    agent any // Runs natively on your Mac where Docker works
     
     stages {
-        stage('Initialize') {
+        stage('Build inside Docker') {
             steps {
-                echo "Running inside Docker container: maven:3.9.6-eclipse-temurin-21"
-                sh 'java -version'
-                sh 'mvn -version'
-            }
-        }
-        stage('Build Environment Test') {
-            steps {
-                echo "Compiling and packaging..."
-                sh 'mvn clean install'
+                // Manually run the Maven build inside the exact same container image
+                sh '''
+                    docker run --rm \
+                    -v "$HOME/.m2:/root/.m2" \
+                    -v "$WORKSPACE:$WORKSPACE" \
+                    -w "$WORKSPACE" \
+                    maven:3.9.6-eclipse-temurin-21 \
+                    mvn clean install
+                '''
             }
         }
     }
     
     post {
         always {
-            echo "Pipeline execution completed. Container will now be destroyed."
+            echo "Pipeline execution completed."
         }
     }
 }
