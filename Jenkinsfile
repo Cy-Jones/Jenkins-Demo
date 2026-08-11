@@ -1,27 +1,33 @@
 pipeline {
-    agent any
-
+    agent {
+        docker {
+            // This pulls a container pre-loaded with Java 21 and Maven
+            image 'maven:3.9.6-eclipse-temurin-21'
+            // We mount the local Maven repository to cache dependencies between builds
+            args '-v $HOME/.m2:/root/.m2'
+        }
+    }
+    
     stages {
-        stage('Checkout') {
+        stage('Initialize') {
             steps {
-                echo 'Checking out source code...'
+                echo "Running inside Docker container: maven:3.9.6-eclipse-temurin-21"
+                sh 'java -version'
+                sh 'mvn -version'
             }
         }
-        stage('Build') {
+        stage('Build Environment Test') {
             steps {
-                echo 'Building your HTML project...'
-                // You can add compilation, linting, or packaging steps here
+                // Tying this back to your Practical 2 Maven project execution
+                echo "Compiling and packaging..."
+                sh 'mvn clean install'
             }
         }
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying application...'
-            }
+    }
+    
+    post {
+        always {
+            echo "Pipeline execution completed. Container will now be destroyed."
         }
     }
 }
