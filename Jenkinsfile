@@ -6,6 +6,11 @@ pipeline {
         }
     }
     
+    environment {
+        // This forces the Jenkins process wrapper to append the Docker path locally
+        PATH = "/usr/local/bin:${env.PATH}"
+    }
+    
     stages {
         stage('Initialize') {
             steps {
