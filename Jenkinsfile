@@ -1,12 +1,14 @@
 pipeline {
-    agent any // Runs natively on your Mac where Docker works
-    
+    agent any // Run natively on the Mac host where docker is verified
+
     stages {
-        stage('Build inside Docker') {
+        stage('Run Maven Build via Docker Container') {
             steps {
-                // Manually run the Maven build inside the exact same container image
+                echo "Bypassing buggy Jenkins agent plugins. Running Docker manually via shell..."
+                
+                // Explicitly run the build step inside a standalone container block
                 sh '''
-                    docker run --rm \
+                    /usr/local/bin/docker run --rm \
                     -v "$HOME/.m2:/root/.m2" \
                     -v "$WORKSPACE:$WORKSPACE" \
                     -w "$WORKSPACE" \
@@ -16,7 +18,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             echo "Pipeline execution completed."
